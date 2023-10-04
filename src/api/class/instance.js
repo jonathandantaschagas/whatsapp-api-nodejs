@@ -16,12 +16,6 @@ const config = require('../../config/config')
 const downloadMessage = require('../helper/downloadMsg')
 const logger = require('pino')()
 const useMongoDBAuthState = require('../helper/mongoAuthState')
-const mongoose = require('mongoose');
-
-const schema = new mongoose.Schema({
-  key: String,
-  webhookUrl: String,
-});
 
 class WhatsAppInstance {
     socketConfig = {
@@ -30,11 +24,11 @@ class WhatsAppInstance {
         logger: pino({
             level: config.log.level,
         }),
-    };
-    key = '';
-    authState;
-    allowWebhook = undefined;
-    webhook = undefined;
+    }
+    key = ''
+    authState
+    allowWebhook = undefined
+    webhook = undefined
 
     instance = {
         key: this.key,
@@ -43,61 +37,27 @@ class WhatsAppInstance {
         messages: [],
         qrRetry: 0,
         customWebhook: '',
-    };
+    }
 
-    axiosInstance;
+    axiosInstance = axios.create({
+        baseURL: config.webhookUrl,
+    })
 
     constructor(key, allowWebhook, webhook) {
-		this.webhook = webhook;
-        this.key = key ? key : uuidv4();
+        this.key = key ? key : uuidv4()
+        this.instance.customWebhook = this.webhook ? this.webhook : webhook
         this.allowWebhook = config.webhookEnabled
             ? config.webhookEnabled
-            : allowWebhook;
-
-       
-        this.initWebhookUrl().then((webhookUrl) => {
-            if (this.allowWebhook && webhookUrl !== null) {
-                this.allowWebhook = true;
-                this.instance.customWebhook = webhookUrl;
-                this.axiosInstance = axios.create({
-                    baseURL: webhookUrl,
-                });
-
-               
-         
-            }
-        });
+            : allowWebhook
+        if (this.allowWebhook && this.instance.customWebhook !== null) {
+            this.allowWebhook = true
+            this.instance.customWebhook = webhook
+            this.axiosInstance = axios.create({
+                baseURL: webhook,
+            })
+        }
     }
 
-    async initWebhookUrl() {
-    try {
-		await mongoose.connect('mongodb://127.0.0.1:27017/whatsapp-api', {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
-        });
-        const SessionModel = mongoose.model(this.key, schema);
-
-        let resultado = await SessionModel.findOne({ key: this.key });
-
-        if (!resultado) {
-            resultado = new SessionModel({
-                key: this.key,
-                webhookUrl: this.webhook,
-            });
-            await resultado.save();
-        } 
-        return resultado.webhookUrl;
-    } catch (err) {
-        return this.webhook !== null ? this.webhook : undefined;
-    }
-}
-
-
-
-
-	
-
-	
     async SendWebhook(type, body, key) {
         if (!this.allowWebhook) return
         this.axiosInstance
