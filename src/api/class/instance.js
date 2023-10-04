@@ -71,7 +71,7 @@ class WhatsAppInstance {
 
     async initWebhookUrl() {
     try {
-		await mongoose.connect('mongodb://127.0.0.1:27017/whatsapp-api', {
+		await mongoose.connect('mongodb://mongo:blYeRS4GQIxjRthFupbv@containers-us-west-175.railway.app:7945', {
             useNewUrlParser: true,
             useUnifiedTopology: true,
         });
