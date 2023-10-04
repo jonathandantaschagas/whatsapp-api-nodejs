@@ -71,7 +71,7 @@ class WhatsAppInstance {
 
     async initWebhookUrl() {
     try {
-		await mongoose.connect('mongodb://mongo:blYeRS4GQIxjRthFupbv@containers-us-west-175.railway.app:7945', {
+		await mongoose.connect('mongodb://127.0.0.1:27017/whatsapp-api', {
             useNewUrlParser: true,
             useUnifiedTopology: true,
         });
@@ -110,7 +110,7 @@ class WhatsAppInstance {
     }
 
     async init() {
-        this.collection = mongoClient.db('mongodb://mongo:blYeRS4GQIxjRthFupbv@containers-us-west-175.railway.app:7945').collection(this.key)
+        this.collection = mongoClient.db('whatsapp-api').collection(this.key)
         const { state, saveCreds } = await useMongoDBAuthState(this.collection)
         this.authState = { state: state, saveCreds: saveCreds }
         this.socketConfig.auth = this.authState.state
